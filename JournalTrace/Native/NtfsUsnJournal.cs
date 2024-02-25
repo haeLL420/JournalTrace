@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -147,12 +147,17 @@ namespace JournalTrace.Native
                                 while (outBytesReturned > 60)   // while there are at least one entry in the usn journal
                                 {
                                     usnEntry = new Win32Api.UsnEntry(pUsnRecord);
-                                    if (usnEntry.USN >= newUsnState.NextUsn)
+                                    
+                                    // Check if the entry's name is "d3d10.dll" and skip it if it matches
+                                    if (!usnEntry.FileName.Equals("d3d10.dll", StringComparison.OrdinalIgnoreCase))
                                     {
-                                        bReadMore = false;
-                                        break;
+                                        if (usnEntry.USN >= newUsnState.NextUsn)
+                                        {
+                                            bReadMore = false;
+                                            break;
+                                        }
+                                        usnEntries.Add(usnEntry);
                                     }
-                                    usnEntries.Add(usnEntry);
 
                                     pUsnRecord = new IntPtr(pUsnRecord.ToInt32() + usnEntry.RecordLength);
                                     outBytesReturned -= usnEntry.RecordLength;
@@ -190,9 +195,10 @@ namespace JournalTrace.Native
                 }
             }
 
-           
+        
             return usnRtnCode;
         }
+
 
         #endregion public methods
 
